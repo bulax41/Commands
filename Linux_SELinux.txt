@@ -1,0 +1,8 @@
+# Change SSH Port
+semanage port -a -t ssh_port_t -p tcp {port}
+
+
+# Show Port Configurations
+semanage port -l
+
+
