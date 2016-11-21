@@ -1,0 +1,17 @@
+# Create partitions with ID "fd"
+fdisk /dev/sdc
+
+# "n" for new
+# "p" primary
+# Pick sectores for size
+# "t" to toggle ID
+# "fd" to select autodectect raid
+# "w" to save to disk
+
+# create mirror
+mdadm --create --level=mirror --raid-devices=2 /dev/sd[c-d]1
+
+
+# See status
+cat /proc/mdstat
+
