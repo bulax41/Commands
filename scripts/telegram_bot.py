@@ -76,7 +76,7 @@ def main():
     chatList = []
 
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("284345903:AAEjNSN0fFgSPMcNPns5rRjVw8rWXOFWek0")
+    updater = Updater("319507063:AAFI9Ca2x50NKTxBuxOn5TSHvdEI-bng0N4")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
