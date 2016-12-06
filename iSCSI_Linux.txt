@@ -1,0 +1,5 @@
+CentOS  6
+iscsiadm -m discovery -t sendtargets -p 10.0.0.30
+iscsiadm -m node -o show
+iscsiadm -m node --login
+iscsiadm -m session -o show
