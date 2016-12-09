@@ -1,5 +1,28 @@
-CentOS  6
-iscsiadm -m discovery -t sendtargets -p 10.0.0.30
-iscsiadm -m node -o show
-iscsiadm -m node --login
-iscsiadm -m session -o show
+## CentOS  6
+`iscsiadm -m discovery -t sendtargets -p 10.0.0.30`
+
+`iscsiadm -m node -o show`
+
+`iscsiadm -m node --login`
+
+`iscsiadm -m session -o show`
+
+
+## CentOS 7
+
+### Target Configuration
+yum install targetcli
+
+`# targetcli`
+
+`/> backstores/block create name=divisa dev=/dev/zvol/TIER2_GROUP01/DIVISA_TARGET`
+
+`/>iscsi/ create iqn.2016-10.com.beeks:t1`
+
+`/> iscsi/iqn.2016-10.com.beeks:t1/tpg1/luns create /backstores/block/divisa `
+
+`/>iscsi/iqn.2016-10.com.beeks:t1/tpg1/acls create iqn.1994-05.com.redhat:fd4c1150cf4d`
+
+`/> iscsi/iqn.2016-10.com.beeks:t1/tpg1/acls/iqn.1994-05.com.redhat:fd4c1150cf4d set auth userid=divisa`
+
+`/> iscsi/iqn.2016-10.com.beeks:t1/tpg1/acls/iqn.1994-05.com.redhat:fd4c1150cf4d set auth password=beeksfinancialcloud`
