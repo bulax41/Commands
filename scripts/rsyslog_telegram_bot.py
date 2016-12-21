@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+#!/bin/python
 import subprocess
 import select
 import sys
@@ -7,11 +6,9 @@ import datetime
 import time
 import re
 import json
-import socket
-import logging
-import telegram
-from contextlib import closing
+
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import logging
 
 savefile = "chatlist.json"
 user_token = "8c6d20cee7837fa7e6a55a254aa3ac53"
@@ -20,6 +17,7 @@ admin_token = "79e36a012213b96a2248cefe01225f71"
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 def _messageUsers(message):
@@ -27,17 +25,6 @@ def _messageUsers(message):
 
 def _messageAdmins(message):
     return
-
-def _isValidPort(port):
-    try:
-        _port = int(port)
-    except:
-        return False
-    if(int(_port)>0 and int(_port)<65536):
-        return True
-
-    return False
-
 
 def tokens(bot,update):
     if _auth(update,admin=True) == False:
@@ -112,11 +99,12 @@ def register(bot, update, args):
                 update.message.reply_text("%s, you are already and admin." % user.first_name)
                 return
             else:
-                _add_user(update,admin=True)
+                userList[str(user.id)]["admin"] = True
                 update.message.reply_text("%s, you are now an admin. Wield the power with care.  Check out the /help menu to see the new commands." % user.first_name)
                 return
+        _add_user(update,admin=True)
     else:
-        update.message.reply_text("Hi %s, I can't register you. " % user.first_name )
+        update.message.reply_text("Hi %s, I don't think chatting with you is a good idea. " % user.first_name )
         return
 
     update.message.reply_text("Welcome %s! If you need help just ask. /help" % user.first_name)
@@ -133,7 +121,14 @@ def blackhole(bot, update, args):
         return
 
     if _auth(update,admin=True) == True:
-        msg = "I have blackhole %s" % " ".join(args)
+        output=subprocess.check_output(["/root/blackhole.sh"," ".join(args)])
+        update.message.reply_text("%s blackholed" % output)
+
+        if output.find("Sucess") != -1:
+            bh_ips.append(args)
+            msg = "I have blackhole %s" % " ".join(args)
+        else:
+            msg = output
     else:
         msg = "Hmmm...  Let me check to see if I can do that for you."
 
@@ -172,80 +167,17 @@ def help(bot, update):
         """
         )
 
-def echo(bot, update):
-    if _auth(update) == False:
-        return
-
-    update.message.reply_text(update.message.text)
-
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
-def unknownCmd(bot, update):
-    if _auth(update) == False:
-        return
-    update.message.reply_text("Hi %s, not sure I understand, please ask for /help if needed." % update.message.from_user.first_name)
-    return
-
-def ping(bot, update, args):
-    if _isIPv4(args[0]):
-        try:
-            output=subprocess.check_output(["ping","-c 5","-i .2",args[0]],stderr=subprocess.STDOUT)
-            reply_markup = telegram.ReplyKeyboardMarkup([["Yes", "No","5","/traceroute"]],one_time_keyboard=True)
-            button1 = telegram.InlineKeyboardButton(text="Yes",callback_data="8.8.8.8")
-            button2 = telegram.InlineKeyboardButton(text="No",callback_data="1.1.1.1")
-            inline_markup = telegram.InlineKeyboardMarkup([[button1],[button2]])
-            update.message.reply_text(output,reply_markup=inline_markup)
-        except subprocess.CalledProcessError,o:
-            update.message.reply_text(o.output)
-    else:
-        update.message.reply_text("Thats not a valid IP")
-    return
-
-def traceroute(bot, update, args):
-    if len(args) != 1:
-        help(bot,update)
-        return
-    if _isIPv4(args[0]):
-        update.message.reply_text("tracing up to 20 hops..")
-        try:
-            output=subprocess.check_output(["traceroute","-In","-q","1","-w","1","-m","20",args[0]],stderr=subprocess.STDOUT)
-            update.message.reply_text(output)
-        except subprocess.CalledProcessError,o:
-            update.message.reply_text(o.ouput)
-    else:
-        update.message.reply_text("Thats not a valid IP")
-    return
-
-def port(bot,update,args):
-    if len(args) != 2:
-        help(bot,update)
-        return
-    if not _isValidPort(args[1]):
-        update.message.reply_text("Thats not a valid Port")
-        return
-
-    if _isIPv4(args[0]):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(1)
-            if sock.connect_ex((args[0], int(args[1]))) == 0:
-                update.message.reply_text("Port %s:%s Open" % (args[0],args[1]))
-            else:
-                update.message.reply_text("Port %s:%s Closed" % (args[0],args[1]))
-    else:
-        update.message.reply_text("Thats not a valid IP")
-    return
-
-def _isIPv4(address):
-    try:
-        socket.inet_aton(address)
-        return True
-    except:
-        return False
-
 def main():
-    global userList
-    userList = {}
+    global userList,bh_ips
+    userList = []
+    peers = {
+        'rt01-wan-ld5' : { 'IN=ens1d1' : 'GTT', 'IN=ens1d2' : 'LINX' },
+        'rt02-wan-ld5' : { 'IN=ens1d1' : 'Cogent' }
+    }
+
 
     # open up previous authenticated chat users
     try:
@@ -258,8 +190,12 @@ def main():
     except:
         pass
 
+    # Populate the blackhole list
+    sublist = subprocess.check_output(["/root/blackhole.sh","list"])
+    bh_ips = sublist.split()
+
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("319507063:AAFI9Ca2x50NKTxBuxOn5TSHvdEI-bng0N4")
+    updater = Updater("284345903:AAEjNSN0fFgSPMcNPns5rRjVw8rWXOFWek0")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -271,9 +207,6 @@ def main():
     dp.add_handler(CommandHandler("blackhole", blackhole,pass_args=True))
     dp.add_handler(CommandHandler("who", who))
     dp.add_handler(CommandHandler("tokens", tokens))
-    dp.add_handler(CommandHandler("ping", ping,pass_args=True))
-    dp.add_handler(CommandHandler("port", port,pass_args=True))
-    dp.add_handler(CommandHandler("traceroute", traceroute,pass_args=True))
 
     dp.add_handler(MessageHandler(Filters.command,help))
     dp.add_handler(MessageHandler(Filters.text, help))
@@ -284,9 +217,55 @@ def main():
     # Start the Bot
     updater.start_polling()
 
-    # search
+    keepRunning = 1
+    pollPeriod = 0.75
+    maxAtOnce = 50
 
-    updater.idle()
+    while keepRunning == 1:
+        while keepRunning and sys.stdin in select.select([sys.stdin], [], [], pollPeriod)[0]:
+            msgs = []
+            msgsInBatch = 0
+            while keepRunning and sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                line = sys.stdin.readline()
+                if line:
+                    msg = line.split()
+                    #m = search.match(line)
+                    if len(msg) > 4:
+                        if msg[3]=="DDoS":
+                           message = "Possible DDoS: IP %s, Router %s, Peer %s\n" % (msg[11],msg[1],peers[msg[1]][msg[7]])
+                           msgs.append(message)
+                else:
+                    # Stdin is closed
+                    keepRunning = 0
+
+                if len(msgs) > 0:
+                    for user in userList:
+                        chat_id = userList[user]["chat_id"]
+                        try:
+                            updater.bot.sendMessage(chat_id=chat_id,text="\n".join(msgs))
+                        except Unauthorized:
+                            # remove update.message.chat_id from conversation list
+                            chatList.remove(chat_id)
+                            continue
+                        except BadRequest:
+                            # remove update.message.chat_id from conversation list
+                            continue
+                        except TimedOut:
+                            # handle slow connection problems
+                            continue
+                        except NetworkError:
+                            # handle other connection problems
+                            continue
+                        except ChatMigrated as e:
+                            chatList.remove(chat_id)
+                            chatList.append(e)
+                            continue
+                        except TelegramError:
+                            # handle all other telegram related errors
+                            continue
+
+    time.sleep(3)
+    updater.stop()
 
 if __name__ == '__main__':
     main()
