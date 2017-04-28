@@ -1,33 +1,30 @@
-for x in {244..257}
+#!/bin/bash
+
+LIST="185.96.244 185.96.245 185.96.246 185.96.247 103.73.124"
+
+for x in $LIST
 do
-   for y in {1..254}
+   echo "Creating NET and IP Chains: $x"
+   iptables -N FILTER-NET-$x
+   for y in {0..255}
    do
-   iptables -N BROKER-185.96.$x.$y
+   iptables -N FILTER-IP-$x.$y
+   iptables -A FILTER-IP-$x.$y -j DROP
    done
+
 done
 
-iptables -N BROKERNET-UK
-iptables -N BROKERNET-US
-iptables -N BROKERNET-HK
-iptables -N BROKERNET-JP
+echo "Done with chains"
 
-for i in {1..254}; 
-do 
-iptables -A BROKERNET-UK  -d 185.96.244.$i -m hashlimit --hashlimit-upto 8mb/s --hashlimit-mode dstip --hashlimit-name tc-185.96.244.$i  -j BROKER-185.96.244.$i 
-iptables -A BROKERNET-UK  -d 185.96.244.$i -m recent --name broker-185.96.244.$i --rcheck --seconds 604800 -j BROKER-185.96.244.$i 
-done
-for i in {1..254}; 
-do 
-iptables -A BROKERNET-US  -d 185.96.245.$i -m hashlimit --hashlimit-upto 8mb/s --hashlimit-mode dstip --hashlimit-name tc-185.96.245.$i  -j BROKER-185.96.245.$i 
-iptables -A BROKERNET-US  -d 185.96.245.$i -m recent --name broker-185.96.245.$i --rcheck --seconds 604800 -j BROKER-185.96.245.$i    
-done
-for i in {1..254}; 
-do 
-iptables -A BROKERNET-JP  -d 185.96.246.$i -m hashlimit --hashlimit-upto 8mb/s --hashlimit-mode dstip --hashlimit-name tc-185.96.246.$i  -j BROKER-185.96.246.$i 
-iptables -A BROKERNET-JP  -d 185.96.246.$i -m recent --name broker-185.96.246.$i --rcheck --seconds 604800 -j BROKER-185.96.246.$i 
-done
-for i in {1..254}; 
-do 
-iptables -A BROKERNET-HK  -d 185.96.247.$i -m hashlimit --hashlimit-upto 8mb/s --hashlimit-mode dstip --hashlimit-name tc-185.96.247.$i  -j BROKER-185.96.247.$i;
-iptables -A BROKERNET-HK  -d 185.96.247.$i -m recent --name broker-185.96.247.$i --rcheck --seconds 604800 -j BROKER-185.96.247.$i
+for net in $LIST
+do
+	echo "Creating filter rules for $net"
+
+	for ip in {0..255}; 
+	do 
+
+	iptables -A FILTER-NET-$net  -d $net.$ip -m hashlimit --hashlimit-upto 100mb/s --hashlimit-mode dstip --hashlimit-name tc-$net.$ip  -j FILTER-IP-$net.$ip
+	iptables -A FILTER-NET-$net  -d $net.$ip -m recent --name filter-$net.$ip --rcheck --seconds 604800 -j FILTER-IP-$net.$ip 
+
+	done
 done

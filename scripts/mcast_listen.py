@@ -2,6 +2,9 @@
 import socket
 import struct
 import sys
+import signal
+import time
+import datetime
 
 class McastSocket(socket.socket):
   def __init__(self, local_port, reuse=False):
@@ -18,33 +21,92 @@ class McastSocket(socket.socket):
         socket.inet_aton(addr) + socket.inet_aton(iface))
 
 def help(error=False):
-   print "Usage: %s {MulticastGroup}:{port} {interface_ip}\n" % sys.argv[0] 
+   print
+   print "Usage: %s {MulticastGroup}:{port} {interface_ip} {decoder}\n" % sys.argv[0]
+   print
+   print "Decoder:  Decode packets for sequence number and display gaps in packet sequence numbers"
+   print "          It can be left blank and just a running total of received packets is desplayed"
+   print
+   print "          cme: decode SBEFix encoded packets from CME's Globex platform"
+   print "               Expecting an Incremental channel as defined in the published produciton config.xml file"
+   print "               ftp.cmegroup.com/SBEFix/Production/Configuration/config.xml "
+   print
+   print "          lmax: decode multicast data for LMAX Exchange multicast market data service"
+   print "                Available groups appear to be: 233.162.5.64 - 233.162.5.69,   Port 16667 "
+   print
+   print
+   sys.exit()
 
 def parse_args():
-   if len(sys.argv) != 3:
-        help()  
-        sys.exit()
 
-   options = sys.argv[1].split(":")
-   options.append(sys.argv[2])
-   return (options)
+   if len(sys.argv) == 3:
+        options = sys.argv[1].split(":")
+        options.append(sys.argv[2])
+        options.append("")
+        return (options)
+   elif len(sys.argv) == 4:
+        options = sys.argv[1].split(":")
+        options.append(sys.argv[2])
+        options.append(sys.argv[3])
+        if sys.argv[3] != "cme"  and sys.argv[3] != "lmax":
+                help()
+        return (options)
+   else:
+        help()
+
+def signal_handler(signal, frame):
+        print
+        print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
+        sys.exit(0)
+
+def decode_cme(msg):
+   return  struct.unpack_from("IQ",msg)
+
+def decode_lmax(msg):
+   (sessionid,seqnum,msglength,msgtype,msgseqnum,timesec,timenanos) = struct.unpack_from("<IQHHQII",msg)
+   pcktime = int(timesec) + int(timenanos)
+   return (seqnum,pcktime)
 
 def main():
 
-   (mcast_group,mcast_port,intf) = parse_args()
-   print "%s %s %s" % (mcast_group,mcast_port,intf)
+   (mcast_group,mcast_port,intf,decode) = parse_args()
 
-   #sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-   #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-   #sock.bind((mcast_group, int(mcast_port))) 
-   #mreq = struct.pack("4sl", socket.inet_aton(mcast_group), socket.inet_aton(intf))
+   signal.signal(signal.SIGINT, signal_handler)
 
-   #sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
    sock = McastSocket(local_port=int(mcast_port), reuse=1)
    sock.mcast_add(mcast_group, intf)
 
+   stime= datetime.datetime.now()
+   print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
+
+   count=0
+   MsgSeqNum = 0
    while True:
-        print sock.recv(1024)
+        msg,source = sock.recvfrom(1500)
+        count = count+1
+        if decode != "":
+                if decode == "cme":
+                        (Num,Time) = decode_cme(msg)
+                elif decode == "lmax":
+                        if len(msg) < 32:
+                                ''' hearbeat '''
+                                MsgSeqNum = MsgSeqNum + 1
+                                continue
+                        (Num,Time) = decode_lmax(msg)
+
+                diff = int(Num) - MsgSeqNum
+                if MsgSeqNum == 0:
+                        print "Decoding %s, Initial sequene number: %s" % (decode,int(Num))
+                elif diff!=1:
+                        now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
+                        print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
+                MsgSeqNum = int(Num)
+
+
+        print "Packets Received: %s" % count ,
+        print '\r',
+
+
 
 if __name__ == '__main__':
     main()
