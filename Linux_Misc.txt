@@ -1,0 +1,4 @@
+# Find PCIe slot information
+
+dmidecode -t slot
+

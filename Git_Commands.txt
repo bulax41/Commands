@@ -10,3 +10,6 @@ git push
 # To remove files from repository
 git rm {filename}
 
+
+# To update current directory
+git pull

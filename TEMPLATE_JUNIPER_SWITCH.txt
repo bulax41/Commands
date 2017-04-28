@@ -1,0 +1,27 @@
+System
+* Hostname
+* root password
+* users
+* ntp
+* enable ssh
+* syslog
+
+
+Interfaces
+* ranges,
+	AllInts - description to OPEN
+	EdgePorts
+	TrunkPorts
+
+
+Protocols
+* lldp - all ports
+* rstp - EdgePorts, TrunkPorts, bpdu-block-on-edge, transports bpdu-timeout-action block
+* igmp-snooping. -  all vlan’s
+
+
+???   Limit MAC to 1 EdgePorts
+???   Sticky MAC learning
+
+
+???  Rate limit incoming bandwidth on EdgePorts

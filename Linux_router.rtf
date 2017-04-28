@@ -1,0 +1,61 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1504\cocoasubrtf810
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww16220\viewh12000\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 1. BIOS Update\
+\
+2. BIOS Settings:  Static High Power, Disable Network Boot\
+\
+3. RAID Configuration.  RAID 1 of 2 x SSD\'92s, and RAID 1 of 2 xSSD\'92s.  If not a onboard RAID controller then most configure in OS\
+\
+4. CentOS Minimal Install.  \
+	* Disk Layout: Use first RAID 1 for OS Partitions, .   Second RAID 1 should be mounted /captures\
+	* Timezone: Europe\
+	* Root Password\
+\
+ 5. Post Install\
+	* Configure interface for management network and Internet access, set DNS resolver to 8.8.8.8\
+	* yum upgrade\
+	* yum install git\
+	* git clone https://github.com/bulax41/firewall\
+	* cd firewall\
+	* ./setup.sh\
+	* reboot\
+	* download exanic drivers.  You can copy the yum.repo from the other routers\
+\
+\
+6.  Networking.  \
+	* Configure bond interface for 2 x 1GE interfaces patched across both. WAN switches\
+	* Use quagga to setup network interface IP\'92s.  \
+	* Disable forwarding on the Management interface in sysctl.conf\
+\
+7. SNMP\
+	* Listen only on management.   /etc/sysconfig/snmpd,  OPTIONS=" \{IP\}:161"\
+	* Configure /etc/snmp/snmpd.conf\
+\
+8. SSH\
+	* Listen only management\
+	* Configure port if needed\
+\
+9. NTP.  \
+	* should be enabled.  Confirm.\
+\
+9. IPTables\
+	* Configure INPUT chain.  Allow BGP peers.  Drop\
+	* FORWARD Chain.  Policy Accept.   Add DDoS rules.\
+\
+10. Tune Profile
+tune-adm prifile network-latency
+
+
+10. (Optional) management routing of local traffic.  \
+	echo 50 >> /etc/iproute2/rt_tables\
+	ip rule add from all iif lo lookup mgmt\
+\
+\
+\
+	\
+}

@@ -1,0 +1,5 @@
+
+alias ll="ls -l" 
+alias cd..="cd .."
+
+export PS1="[\u@\h \W]\$"
