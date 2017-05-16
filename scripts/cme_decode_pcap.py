@@ -21,7 +21,7 @@ def main():
         for timestamp, buf in pcap:
             eth = dpkt.ethernet.Ethernet(buf)
             ip = eth.data
-            (seqnum,pcktime) = struct.unpack_from(">IQ",ip.data)
+            (seqnum,pcktime) = struct.unpack_from(">IQ",ip.data[:5])
             diff = int(seqnum) - MsgSeqNum
             if MsgSeqNum == 0:
                 print "Initial sequence number: %s" % int(seqnum)

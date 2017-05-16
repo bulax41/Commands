@@ -2,3 +2,11 @@
 
 dmidecode -t slot
 
+
+#  Extend filesystem
+fdisk to resize the partition
+pvextend /dev/sdX
+vgextend +100%FREE /dev/PV/VG
+#Then extend filesystem
+xfs_growfs /
+

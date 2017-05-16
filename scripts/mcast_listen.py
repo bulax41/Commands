@@ -5,6 +5,7 @@ import sys
 import signal
 import time
 import datetime
+import argparse
 
 class McastSocket(socket.socket):
   def __init__(self, local_port, reuse=False):
@@ -13,6 +14,7 @@ class McastSocket(socket.socket):
       self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
       if hasattr(socket, "SO_REUSEPORT"):
         self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    self.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,8388608)
     self.bind(('', local_port))
   def mcast_add(self, addr, iface):
     self.setsockopt(
@@ -101,6 +103,7 @@ def main():
                         now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
                         print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
                 MsgSeqNum = int(Num)
+
 
 
         print "Packets Received: %s" % count ,
