@@ -32,7 +32,7 @@ def signal_handler(signal, frame):
         print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
         sys.exit(0)
 
-def join_group(group):
+def join_group(group,args):
     (mcast_group,mcast_port) = group.split(":")
     sock = McastSocket(local_port=int(mcast_port),reuse=1)
     sock.mcast_add(mcast_group, args.interface)
@@ -60,7 +60,7 @@ def main():
 
     threads = []
     for group in args.group:
-        t = threading.Thread(target=join_group, args=(group,))
+        t = threading.Thread(target=join_group, args=(group,args))
         threads.append(t)
         t.start()
 
