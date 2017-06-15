@@ -37,9 +37,9 @@ def join_group_cme(group,args,event):
         sock.settimeout(30.0)
         msg,source = sock.recvfrom(1500)
         if len(msg)==0:
-            print "Timeout on %s at %s",(group,atetime.datetime.now().strftime("%b %d %Y %X.%f"))
+            print "Timeout on %s at %s",(group,datetime.datetime.now().strftime("%b %d %Y %X.%f"))
             continue
-            
+
         (Num,Time) = decode_cme(msg)
 
         diff = int(Num) - MsgSeqNum
@@ -113,7 +113,7 @@ def main():
 
     while True:
         time.sleep(1)
-        print "Sequence Number(S): ",
+        print "Sequence Number(S) at %s:" % (datetime.datetime.now().strftime("%b %d %Y %X.%f")),
         for c,v in count.items():
             print "%s: %s" % (c,v),
         print "\r",
