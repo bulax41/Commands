@@ -22,6 +22,7 @@ def main():
     parser.add_argument('-g', '--group',required=True,help="Group(s) to join in IP:Port format, may be used more than once")
     parser.add_argument('-i','--interface',required=True,help="IP address of the Interface to join on")
     parser.add_argument('-d','--decode',required=True,choices=["lmax","cme"],help="LMAX or CME")
+    parser.add_argument('-q','--quiet',help="Do not print packet count")
     args = parser.parse_args()
 
     (mcast_group,mcast_port) = args.group.split(":")
@@ -57,8 +58,9 @@ def main():
                 print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
         MsgSeqNum = int(Num)
 
-        print "Packets Received: %s" % count ,
-        print '\r',
+        if not args.quiet:
+            print "Packets Received: %s" % count ,
+            print '\r',
 
 
 
