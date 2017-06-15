@@ -61,7 +61,8 @@ def main():
     args = parser.parse_args()
 
 
-    global estop = threading.Event()
+    global estop
+    estop = threading.Event()
     threads = []
     for group in args.group:
         t = threading.Thread(target=join_group, args=(group,args,estop))
