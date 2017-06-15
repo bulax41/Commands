@@ -30,9 +30,7 @@ class McastSocket(socket.socket):
 def signal_handler(signal, frame):
         print
         print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
-        for thread in threads:
-            thread.stop()
-
+        estop.set()
         sys.exit(0)
 
 def join_group(group,args,event):
