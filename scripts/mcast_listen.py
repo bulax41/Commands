@@ -18,7 +18,7 @@ class McastSocket(socket.socket):
     self.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,8388608)
     self.bind(('', local_port))
 
-  def mcast_add(self, addr, iface, port):
+  def mcast_add(self, addr, iface):
     self.setsockopt(
         socket.IPPROTO_IP,
         socket.IP_ADD_MEMBERSHIP,
