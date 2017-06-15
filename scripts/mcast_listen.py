@@ -53,8 +53,8 @@ def main():
     parser.add_argument('-q','--quiet',action="count",help="Do not print packet count")
     args = parser.parse_args()
 
-    global estop
-    global count = {}
+    global estop, count
+    count = {}
 
     signal.signal(signal.SIGINT, signal_handler)
 
