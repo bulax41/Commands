@@ -44,7 +44,7 @@ def join_group(group,args,event):
                 now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
                 print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
         MsgSeqNum = int(Num)
-        count[group] = MsqSeqNum
+        count[group] = MsgSeqNum
 
 
 def main():
