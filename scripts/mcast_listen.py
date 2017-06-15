@@ -28,6 +28,7 @@ class McastSocket(socket.socket):
 
 
 def signal_handler(signal, frame):
+        global estop
         print
         print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
         estop.set()
