@@ -46,7 +46,7 @@ def main():
                 if len(msg) < 32:
                     ''' hearbeat '''
                     MsgSeqNum = MsgSeqNum + 1
-                        continue
+                    continue
                 (Num,Time) = decode_lmax(msg)
 
         diff = int(Num) - MsgSeqNum
