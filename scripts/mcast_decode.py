@@ -13,8 +13,6 @@ def signal_handler(signal, frame):
         estop.set()
         sys.exit(0)
 
-def signal_timeout(signal, frame):
-        print
 def decode_cme(msg):
    return  struct.unpack_from("IQ",msg)
 
@@ -97,7 +95,6 @@ def main():
 
     ''' Allow Cntl-C to break out of loop '''
     signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGALRM, signal_timeout))
 
     estop = threading.Event()
     threads = []
