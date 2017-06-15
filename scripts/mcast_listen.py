@@ -63,7 +63,7 @@ def main():
     for group in args.group:
         count[group] = 0
         t = threading.Thread(target=join_group, args=(group,args,estop))
-        threads[group].append(t)
+        threads.append(t)
         t.start()
 
     while True:
