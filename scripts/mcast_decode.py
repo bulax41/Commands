@@ -19,10 +19,10 @@ def decode_lmax(msg):
 
 def main():
     parser = argparse.ArgumentParser(description='Subscribe and decode multicast for CME or LMAX')
-    parser.add_argument('-g', '--group',required=True,help="Group(s) to join in IP:Port format, may be used more than once")
+    parser.add_argument('-g', '--group',action="append",required=True,help="Group(s) to join in IP:Port format, may be used more than once")
     parser.add_argument('-i','--interface',required=True,help="IP address of the Interface to join on")
     parser.add_argument('-d','--decode',required=True,choices=["lmax","cme"],help="LMAX or CME")
-    parser.add_argument('-q','--quiet',help="Do not print packet count")
+    parser.add_argument('-q',action="count",help="Do not print packet count")
     args = parser.parse_args()
 
     (mcast_group,mcast_port) = args.group.split(":")
