@@ -35,7 +35,7 @@ def join_group_cme(group,args,event):
         sock.settimeout(30.0)
         try:
             msg,source = sock.recvfrom(1500)
-        except socket.Timeouterror:
+        except socket.timeout:
             print "Timeout on %s at %s",(group,datetime.datetime.now().strftime("%b %d %Y %X.%f"))
             continue
 
