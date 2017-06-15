@@ -32,7 +32,7 @@ def main():
     while True:
         msg,source = sock.recvfrom(1500)
         count = count+1
-        if decode != "":
+        if args.decode != "":
                 if args.decode == "cme":
                         (Num,Time) = decode_cme(msg)
                 elif args.decode == "lmax":
