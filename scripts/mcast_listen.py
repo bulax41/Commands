@@ -43,12 +43,7 @@ def join_group(group,args,event):
     MsgSeqNum = 0
     while not event.isSet():
         msg,source = sock.recvfrom(1500)
-        count = count+1
-        if not args.quiet:
-            print "Packets Received: %s" % count ,
-            print '\r',
-
-
+        count[group] += 1
 
 
 def main():
@@ -60,17 +55,22 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
 
+    count = []
+
     global estop
     estop = threading.Event()
     threads = []
     for group in args.group:
+        count[group] = 0
         t = threading.Thread(target=join_group, args=(group,args,estop))
-        threads.append(t)
+        threads[group].append(t)
         t.start()
 
-    time.sleep(10)
-    estop.set()
-
+    while True:
+        time.sleep(1)
+        for c in count:
+            print "%: %" % (c,count[c]),
+        print "\r",
 
 
 if __name__ == '__main__':
