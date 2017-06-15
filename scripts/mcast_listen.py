@@ -69,7 +69,7 @@ def main():
     while True:
         time.sleep(1)
         for c,v in count.items():
-            print "%: %" % (c,v),
+            print "%s: %s" % (c,v),
         print "\r",
 
 
