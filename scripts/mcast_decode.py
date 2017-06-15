@@ -13,6 +13,8 @@ def signal_handler(signal, frame):
         estop.set()
         sys.exit(0)
 
+def signal_timeout(signal, frame):
+        print
 def decode_cme(msg):
    return  struct.unpack_from("IQ",msg)
 
@@ -29,18 +31,23 @@ def join_group_cme(group,args,event):
     stime= datetime.datetime.now()
     print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
 
+
     MsgSeqNum = 0
     while not event.isSet():
+        sock.settimeout(30.0)
         msg,source = sock.recvfrom(1500)
-
+        if len(msg)==0:
+            print "Timeout on %s at %s",(group,atetime.datetime.now().strftime("%b %d %Y %X.%f"))
+            continue
+            
         (Num,Time) = decode_cme(msg)
 
         diff = int(Num) - MsgSeqNum
         if MsgSeqNum == 0:
-                print "Decoding %s, Initial sequene number: %s" % (args.decode,int(Num))
+                print "Decoding %s %s, Initial sequene number: %s" % (args.decode,group,int(Num))
         elif diff!=1:
                 now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
-                print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
+                print "Gapped Detected %s, %s Packets, Sequence Numbers %s-%s at %s" %  (group,diff-1,MsgSeqNum+1,int(Num)-1,now)
         MsgSeqNum = int(Num)
         count[group] = MsgSeqNum
 
@@ -56,6 +63,7 @@ def join_group_lmax(group,args,event):
 
     MsgSeqNum = 0
     while not event.isSet():
+        sock.settimeout(30.0)
         msg,source = sock.recvfrom(1500)
 
         if len(msg) < 32:
@@ -67,10 +75,10 @@ def join_group_lmax(group,args,event):
 
         diff = int(Num) - MsgSeqNum
         if MsgSeqNum == 0:
-                print "Decoding %s, Initial sequene number: %s" % (args.decode,int(Num))
+                print "Decoding %s %s, Initial sequene number: %s" % (args.decode,group,int(Num))
         elif diff!=1:
                 now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
-                print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
+                print "Gapped Detected %S, %s Packets, Sequence Numbers %s-%s at %s" %  (group,diff-1,MsgSeqNum+1,int(Num)-1,now)
         MsgSeqNum = int(Num)
         count[group] = MsgSeqNum
 
@@ -89,6 +97,7 @@ def main():
 
     ''' Allow Cntl-C to break out of loop '''
     signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGALRM, signal_timeout))
 
     estop = threading.Event()
     threads = []
