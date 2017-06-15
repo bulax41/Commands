@@ -34,13 +34,13 @@ def signal_handler(signal, frame):
         sys.exit(0)
 
 def join_group(group,args,event):
+    global count
     (mcast_group,mcast_port) = group.split(":")
     sock = McastSocket(local_port=int(mcast_port),reuse=1)
     sock.mcast_add(mcast_group, args.interface)
     stime= datetime.datetime.now()
     print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
-    count=0
-    MsgSeqNum = 0
+
     while not event.isSet():
         msg,source = sock.recvfrom(1500)
         count[group] += 1
