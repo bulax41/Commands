@@ -36,6 +36,7 @@ def join_group(group,args):
     (mcast_group,mcast_port) = group.split(":")
     sock = McastSocket(local_port=int(mcast_port),reuse=1)
     sock.mcast_add(mcast_group, args.interface)
+    stime= datetime.datetime.now()
     print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
     count=0
     MsgSeqNum = 0
@@ -56,7 +57,7 @@ def main():
     parser.add_argument('-q','--quiet',action="count",help="Do not print packet count")
     args = parser.parse_args()
 
-    stime= datetime.datetime.now()
+
 
     threads = []
     for group in args.group:
