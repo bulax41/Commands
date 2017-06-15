@@ -34,8 +34,8 @@ def signal_handler(signal, frame):
 
 def join_group(group):
     (mcast_group,mcast_port) = group.split(":")
-    sockets[group] = McastSocket(local_port=int(mcast_port),reuse=1)
-    sockets[group].mcast_add(mcast_group, args.interface)
+    sock = McastSocket(local_port=int(mcast_port),reuse=1)
+    sock.mcast_add(mcast_group, args.interface)
     print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
     count=0
     MsgSeqNum = 0
