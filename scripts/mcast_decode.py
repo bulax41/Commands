@@ -87,9 +87,9 @@ def main():
         count[group] = 0
         if args.decode=="cme":
             t = threading.Thread(target=join_group_cme, args=(group,args,estop))
-        elif args.decode=="lmax"
+        elif args.decode=="lmax":
             t = threading.Thread(target=join_group_lmax, args=(group,args,estop))
-            
+
         threads.append(t)
         t.start()
 
