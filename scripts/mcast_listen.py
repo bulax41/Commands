@@ -55,7 +55,7 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    count = []
+    count = {}
 
     global estop
     estop = threading.Event()
