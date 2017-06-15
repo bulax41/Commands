@@ -27,7 +27,7 @@ def main():
                 print "Initial sequence number: %s" % int(seqnum)
             elif diff!=1:
                 Gaps = Gaps + diff - 1
-                now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
+                now =  datetime.datetime.utcfromtimestamp(timestamp).strftime("%b %d %Y %X.%f")
                 print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
             MsgSeqNum = int(seqnum)
             Packets = Packets + 1
