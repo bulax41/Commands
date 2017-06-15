@@ -171,15 +171,17 @@ def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
 def main():
-    global userList,bh_ips
+    global userList
     userList = []
-    peers = {
-        'rt01-wan-ld5' : { 'IN=ens1d1' : 'GTT', 'IN=ens1d2' : 'LINX' },
-        'rt02-wan-ld5' : { 'IN=ens1d1' : 'Cogent' }
-    }
 
+    # open up pipe to receive alerts
+    FIFO="/tmp/telegram.bot"
+    try:
+        os.mkfifo(FIFO)
+    except OSError as oe:
+        if oe.errno != errno.EEXIST:
+            raise
 
-    # open up previous authenticated chat users
     try:
         with open(savefile, 'r') as f:
             try:
@@ -190,9 +192,6 @@ def main():
     except:
         pass
 
-    # Populate the blackhole list
-    sublist = subprocess.check_output(["/root/blackhole.sh","list"])
-    bh_ips = sublist.split()
 
     # Create the EventHandler and pass it your bot's token.
     updater = Updater("284345903:AAEjNSN0fFgSPMcNPns5rRjVw8rWXOFWek0")
@@ -203,8 +202,6 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("register", register,pass_args=True))
     dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("bhlist", bhlist))
-    dp.add_handler(CommandHandler("blackhole", blackhole,pass_args=True))
     dp.add_handler(CommandHandler("who", who))
     dp.add_handler(CommandHandler("tokens", tokens))
 

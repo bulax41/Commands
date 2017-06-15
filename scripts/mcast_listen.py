@@ -22,92 +22,37 @@ class McastSocket(socket.socket):
         socket.IP_ADD_MEMBERSHIP,
         socket.inet_aton(addr) + socket.inet_aton(iface))
 
-def help(error=False):
-   print
-   print "Usage: %s {MulticastGroup}:{port} {interface_ip} {decoder}\n" % sys.argv[0]
-   print
-   print "Decoder:  Decode packets for sequence number and display gaps in packet sequence numbers"
-   print "          It can be left blank and just a running total of received packets is desplayed"
-   print
-   print "          cme: decode SBEFix encoded packets from CME's Globex platform"
-   print "               Expecting an Incremental channel as defined in the published produciton config.xml file"
-   print "               ftp.cmegroup.com/SBEFix/Production/Configuration/config.xml "
-   print
-   print "          lmax: decode multicast data for LMAX Exchange multicast market data service"
-   print "                Available groups appear to be: 233.162.5.64 - 233.162.5.69,   Port 16667 "
-   print
-   print
-   sys.exit()
-
-def parse_args():
-
-   if len(sys.argv) == 3:
-        options = sys.argv[1].split(":")
-        options.append(sys.argv[2])
-        options.append("")
-        return (options)
-   elif len(sys.argv) == 4:
-        options = sys.argv[1].split(":")
-        options.append(sys.argv[2])
-        options.append(sys.argv[3])
-        if sys.argv[3] != "cme"  and sys.argv[3] != "lmax":
-                help()
-        return (options)
-   else:
-        help()
-
 def signal_handler(signal, frame):
         print
         print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
         sys.exit(0)
 
-def decode_cme(msg):
-   return  struct.unpack_from("IQ",msg)
-
-def decode_lmax(msg):
-   (sessionid,seqnum,msglength,msgtype,msgseqnum,timesec,timenanos) = struct.unpack_from("<IQHHQII",msg)
-   pcktime = int(timesec) + int(timenanos)
-   return (seqnum,pcktime)
 
 def main():
+    parser = argparse.ArgumentParser(description='Subscribe and decode multicast for CME or LMAX')
+    parser.add_argument('-g', '--group',required=True,help="Group(s) to join in IP:Port format, may be used more than once")
+    parser.add_argument('-i','--interface',required=True,help="IP address of the Interface to join on")
+    parser.add_argument('-q','--quiet',help="Do not print packet count")
+    args = parser.parse_args()
 
-   (mcast_group,mcast_port,intf,decode) = parse_args()
+    (mcast_group,mcast_port) = args.group.split(":")
 
-   signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
 
-   sock = McastSocket(local_port=int(mcast_port), reuse=1)
-   sock.mcast_add(mcast_group, intf)
+    sock = McastSocket(local_port=int(mcast_port), reuse=1)
+    sock.mcast_add(mcast_group, args.interface)
 
-   stime= datetime.datetime.now()
-   print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
+    stime= datetime.datetime.now()
+    print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
 
-   count=0
-   MsgSeqNum = 0
-   while True:
+    count=0
+    MsgSeqNum = 0
+    while True:
         msg,source = sock.recvfrom(1500)
         count = count+1
-        if decode != "":
-                if decode == "cme":
-                        (Num,Time) = decode_cme(msg)
-                elif decode == "lmax":
-                        if len(msg) < 32:
-                                ''' hearbeat '''
-                                MsgSeqNum = MsgSeqNum + 1
-                                continue
-                        (Num,Time) = decode_lmax(msg)
-
-                diff = int(Num) - MsgSeqNum
-                if MsgSeqNum == 0:
-                        print "Decoding %s, Initial sequene number: %s" % (decode,int(Num))
-                elif diff!=1:
-                        now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
-                        print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
-                MsgSeqNum = int(Num)
-
-
-
-        print "Packets Received: %s" % count ,
-        print '\r',
+        if not args.quiet:
+            print "Packets Received: %s" % count ,
+            print '\r',
 
 
 

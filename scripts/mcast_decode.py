@@ -8,6 +8,13 @@ import datetime
 import argparse
 from mcast_listen import *
 
+def decode_cme(msg):
+   return  struct.unpack_from("IQ",msg)
+
+def decode_lmax(msg):
+   (sessionid,seqnum,msglength,msgtype,msgseqnum,timesec,timenanos) = struct.unpack_from("<IQHHQII",msg)
+   pcktime = int(timesec) + int(timenanos)
+   return (seqnum,pcktime)
 
 
 def main():
@@ -32,25 +39,23 @@ def main():
     while True:
         msg,source = sock.recvfrom(1500)
         count = count+1
-        if args.decode != "":
-                if args.decode == "cme":
-                        (Num,Time) = decode_cme(msg)
-                elif args.decode == "lmax":
-                        if len(msg) < 32:
-                                ''' hearbeat '''
-                                MsgSeqNum = MsgSeqNum + 1
-                                continue
-                        (Num,Time) = decode_lmax(msg)
 
-                diff = int(Num) - MsgSeqNum
-                if MsgSeqNum == 0:
-                        print "Decoding %s, Initial sequene number: %s" % (decode,int(Num))
-                elif diff!=1:
-                        now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
-                        print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
-                MsgSeqNum = int(Num)
+        if args.decode == "cme":
+                (Num,Time) = decode_cme(msg)
+        elif args.decode == "lmax":
+                if len(msg) < 32:
+                    ''' hearbeat '''
+                    MsgSeqNum = MsgSeqNum + 1
+                        continue
+                (Num,Time) = decode_lmax(msg)
 
-
+        diff = int(Num) - MsgSeqNum
+        if MsgSeqNum == 0:
+                print "Decoding %s, Initial sequene number: %s" % (args.decode,int(Num))
+        elif diff!=1:
+                now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
+                print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
+        MsgSeqNum = int(Num)
 
         print "Packets Received: %s" % count ,
         print '\r',
