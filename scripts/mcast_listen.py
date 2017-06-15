@@ -60,11 +60,11 @@ def main():
 
     threads = []
     for group in args.group:
-        t = threading.Thread(target=worker, args=(group,))
+        t = threading.Thread(target=join_group, args=(group,))
         threads.append(t)
         t.start()
 
-        
+
     signal.signal(signal.SIGINT, signal_handler)
 
 
