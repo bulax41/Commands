@@ -16,7 +16,7 @@ def decode_lmax(msg):
    pcktime = int(timesec) + int(timenanos)
    return (seqnum,pcktime)
 
-def join_group(group,args,event):
+def join_group_cme(group,args,event):
     global count
     (mcast_group,mcast_port) = group.split(":")
     sock = McastSocket(local_port=int(mcast_port),reuse=1)
@@ -28,14 +28,7 @@ def join_group(group,args,event):
     while not event.isSet():
         msg,source = sock.recvfrom(1500)
 
-        if args.decode == "cme":
-                (Num,Time) = decode_cme(msg)
-        elif args.decode == "lmax":
-                if len(msg) < 32:
-                    ''' hearbeat '''
-                    MsgSeqNum = MsgSeqNum + 1
-                    continue
-                (Num,Time) = decode_lmax(msg)
+        (Num,Time) = decode_cme(msg)
 
         diff = int(Num) - MsgSeqNum
         if MsgSeqNum == 0:
@@ -46,6 +39,33 @@ def join_group(group,args,event):
         MsgSeqNum = int(Num)
         count[group] = MsgSeqNum
 
+def join_group_lmax(group,args,event):
+    global count
+    (mcast_group,mcast_port) = group.split(":")
+    sock = McastSocket(local_port=int(mcast_port),reuse=1)
+    sock.mcast_add(mcast_group, args.interface)
+    stime= datetime.datetime.now()
+    print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
+
+    MsgSeqNum = 0
+    while not event.isSet():
+        msg,source = sock.recvfrom(1500)
+
+        if len(msg) < 32:
+            ''' hearbeat '''
+            MsgSeqNum = MsgSeqNum + 1
+            continue
+
+        (Num,Time) = decode_lmax(msg)
+
+        diff = int(Num) - MsgSeqNum
+        if MsgSeqNum == 0:
+                print "Decoding %s, Initial sequene number: %s" % (args.decode,int(Num))
+        elif diff!=1:
+                now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
+                print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
+        MsgSeqNum = int(Num)
+        count[group] = MsgSeqNum
 
 def main():
     parser = argparse.ArgumentParser(description='Subscribe and decode multicast for CME or LMAX')
@@ -65,7 +85,11 @@ def main():
     threads = []
     for group in args.group:
         count[group] = 0
-        t = threading.Thread(target=join_group, args=(group,args,estop))
+        if args.decode=="cme":
+            t = threading.Thread(target=join_group_cme, args=(group,args,estop))
+        elif args.decode=="lmax"
+            t = threading.Thread(target=join_group_lmax, args=(group,args,estop))
+            
         threads.append(t)
         t.start()
 
