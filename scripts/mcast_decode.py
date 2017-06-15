@@ -26,10 +26,10 @@ def main():
     args = parser.parse_args()
 
     stime= datetime.datetime.now()
-    sock = McastSocket(local_port=int(mcast_port), reuse=1)
+    sock = McastSocket(reuse=1)
     for group in args.group:
         (mcast_group,mcast_port) = group.split(":")
-        sock.mcast_add(mcast_group, args.interface)
+        sock.mcast_add(mcast_group, args.interface,int(mcast_port))
         print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
 
     ''' Allow Cntl-C to break out of loop '''
