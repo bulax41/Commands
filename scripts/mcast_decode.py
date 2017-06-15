@@ -8,6 +8,11 @@ import datetime
 import argparse
 from mcast_listen import *
 
+def signal_handler(signal, frame):
+        global estop
+        estop.set()
+        sys.exit(0)
+
 def decode_cme(msg):
    return  struct.unpack_from("IQ",msg)
 
@@ -39,6 +44,8 @@ def join_group_cme(group,args,event):
         MsgSeqNum = int(Num)
         count[group] = MsgSeqNum
 
+    print "Exiting Group %s... %s" % (group,datetime.datetime.now().strftime("%b %d %Y %X.%f"))
+
 def join_group_lmax(group,args,event):
     global count
     (mcast_group,mcast_port) = group.split(":")
@@ -66,6 +73,8 @@ def join_group_lmax(group,args,event):
                 print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
         MsgSeqNum = int(Num)
         count[group] = MsgSeqNum
+
+    print "Exiting Group %s... %s" % (group,datetime.datetime.now().strftime("%b %d %Y %X.%f"))
 
 def main():
     parser = argparse.ArgumentParser(description='Subscribe and decode multicast for CME or LMAX')

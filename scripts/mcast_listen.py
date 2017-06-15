@@ -30,7 +30,7 @@ class McastSocket(socket.socket):
 def signal_handler(signal, frame):
         global estop
         print
-        print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
+
         estop.set()
         sys.exit(0)
 
@@ -46,6 +46,7 @@ def join_group(group,args,event):
         msg,source = sock.recvfrom(1500)
         count[group] += 1
 
+    print "Exiting Group %s... %s" % (group,datetime.datetime.now().strftime("%b %d %Y %X.%f"))
 
 def main():
     parser = argparse.ArgumentParser(description='Subscribe and decode multicast for CME or LMAX')
