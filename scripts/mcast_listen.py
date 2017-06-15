@@ -68,8 +68,8 @@ def main():
 
     while True:
         time.sleep(1)
-        for c in count:
-            print "%: %" % (c,count[c]),
+        for c,v in count.items():
+            print "%: %" % (c,v),
         print "\r",
 
 
