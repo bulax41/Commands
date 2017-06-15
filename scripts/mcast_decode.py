@@ -27,7 +27,7 @@ def join_group(group,args,event):
     MsgSeqNum = 0
     while not event.isSet():
         msg,source = sock.recvfrom(1500)
-        count[group] += 1
+
         if args.decode == "cme":
                 (Num,Time) = decode_cme(msg)
         elif args.decode == "lmax":
@@ -44,6 +44,7 @@ def join_group(group,args,event):
                 now =  datetime.datetime.now().strftime("%b %d %Y %X.%f")
                 print "Gapped Detected, %s Packets, Sequence Numbers %s-%s at %s" %  (diff-1,MsgSeqNum+1,int(Num)-1,now)
         MsgSeqNum = int(Num)
+        count[group] = MsqSeqNum
 
 
 def main():
@@ -70,6 +71,7 @@ def main():
 
     while True:
         time.sleep(1)
+        print "Sequence Number(S): ",
         for c,v in count.items():
             print "%s: %s" % (c,v),
         print "\r",
