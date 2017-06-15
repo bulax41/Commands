@@ -58,6 +58,7 @@ def main():
     parser.add_argument('-q','--quiet',action="count",help="Do not print packet count")
     args = parser.parse_args()
 
+    signal.signal(signal.SIGINT, signal_handler)
 
     global estop
     estop = threading.Event()
@@ -67,8 +68,8 @@ def main():
         threads.append(t)
         t.start()
 
-
-    signal.signal(signal.SIGINT, signal_handler)
+    time.sleep(10)
+    estop.set()
 
 
 
