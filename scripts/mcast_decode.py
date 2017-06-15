@@ -25,15 +25,15 @@ def main():
     parser.add_argument('-q',action="count",help="Do not print packet count")
     args = parser.parse_args()
 
-    (mcast_group,mcast_port) = args.group.split(":")
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-    sock = McastSocket(local_port=int(mcast_port), reuse=1)
-    sock.mcast_add(mcast_group, args.interface)
-
     stime= datetime.datetime.now()
-    print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
+    sock = McastSocket(local_port=int(mcast_port), reuse=1)
+    for group in args.group:
+        (mcast_group,mcast_port) = group.split(":")
+        sock.mcast_add(mcast_group, args.interface)
+        print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
+
+    ''' Allow Cntl-C to break out of loop '''
+    signal.signal(signal.SIGINT, signal_handler)
 
     count=0
     MsgSeqNum = 0
