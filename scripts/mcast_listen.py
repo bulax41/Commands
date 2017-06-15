@@ -30,9 +30,12 @@ class McastSocket(socket.socket):
 def signal_handler(signal, frame):
         print
         print "Exiting... %s" % datetime.datetime.now().strftime("%b %d %Y %X.%f")
+        for thread in threads:
+            thread.stop()
+
         sys.exit(0)
 
-def join_group(group,args):
+def join_group(group,args,event):
     (mcast_group,mcast_port) = group.split(":")
     sock = McastSocket(local_port=int(mcast_port),reuse=1)
     sock.mcast_add(mcast_group, args.interface)
@@ -40,7 +43,7 @@ def join_group(group,args):
     print "Joining %s:%s at %s" % (mcast_group,mcast_port,stime.strftime("%b %d %Y %X.%f"))
     count=0
     MsgSeqNum = 0
-    while True:
+    while not event.isSet():
         msg,source = sock.recvfrom(1500)
         count = count+1
         if not args.quiet:
@@ -58,10 +61,10 @@ def main():
     args = parser.parse_args()
 
 
-
+    global estop = threading.Event()
     threads = []
     for group in args.group:
-        t = threading.Thread(target=join_group, args=(group,args))
+        t = threading.Thread(target=join_group, args=(group,args,estop))
         threads.append(t)
         t.start()
 
