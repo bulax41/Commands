@@ -23,21 +23,74 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 def _messageUsers(message):
+    global userList,updater
+    for user in userList.keys():
+        chat_id = userList[user]["chat_id"]
+        try:
+            logger.info("Sending Message to user %s" % user)
+            updater.bot.sendMessage(chat_id=chat_id,text=message)
+
+        except Unauthorized:
+            # remove update.message.chat_id from conversation list
+            chatList.remove(chat_id)
+            logger.warning("Unauthorized, remove update.message.chat_id from conversation list")
+            continue
+        except BadRequest:
+            # remove update.message.chat_id from conversation list
+            logger.warning("BadRequest, sending message")
+            continue
+        except TimedOut:
+            # handle slow connection problems
+            logger.warning("TimedOut, sending message")
+            continue
+        except NetworkError:
+            # handle other connection problems
+            logger.warning("NetworkError, sending message")
+            continue
+        except ChatMigrated as e:
+            logger.warning("Chat Migrated ID, sending message")
+            continue
+        except TelegramError:
+            # handle all other telegram related errors
+            logger.warning("TelegramError, sending message")
+            continue
     return
 
 def _messageAdmins(message):
+    global userList,updater
+    for user in userList.keys():
+        if userList[user]["admin"] == False:
+            continue
+        chat_id = userList[user]["chat_id"]
+        try:
+            logger.info("Sending Message to user %s" % user)
+            updater.bot.sendMessage(chat_id=chat_id,text=message)
+
+        except Unauthorized:
+            # remove update.message.chat_id from conversation list
+            chatList.remove(chat_id)
+            logger.warning("Unauthorized, remove update.message.chat_id from conversation list")
+            continue
+        except BadRequest:
+            # remove update.message.chat_id from conversation list
+            logger.warning("BadRequest, sending message")
+            continue
+        except TimedOut:
+            # handle slow connection problems
+            logger.warning("TimedOut, sending message")
+            continue
+        except NetworkError:
+            # handle other connection problems
+            logger.warning("NetworkError, sending message")
+            continue
+        except ChatMigrated as e:
+            logger.warning("Chat Migrated ID, sending message")
+            continue
+        except TelegramError:
+            # handle all other telegram related errors
+            logger.warning("TelegramError, sending message")
+            continue
     return
-
-def _isValidPort(port):
-    try:
-        _port = int(port)
-    except:
-        return False
-    if(int(_port)>0 and int(_port)<65536):
-        return True
-
-    return False
-
 
 def tokens(bot,update):
     if _auth(update,admin=True) == False:
@@ -126,29 +179,6 @@ def register(bot, update, args):
     return
 
 
-def blackhole(bot, update, args):
-    global bh_ips
-    msg = ""
-    if _auth(update) == False:
-        return
-
-    if _auth(update,admin=True) == True:
-        msg = "I have blackhole %s" % " ".join(args)
-    else:
-        msg = "Hmmm...  Let me check to see if I can do that for you."
-
-    update.message.reply_text(msg)
-
-def bhlist(bot, update):
-    global bh_ips
-    if _auth(update) == False:
-        return
-
-    ips = "\n".join(bh_ips)
-    text = "List of Blackholed IP's:\n %s " % ips
-    update.message.reply_text(text)
-
-
 def help(bot, update):
     global userList
     if _auth(update) == False:
@@ -158,7 +188,6 @@ def help(bot, update):
     if _auth(update,admin=True):
         m = """
         *Admin Commands*
-        /blackhole {IP}    : This will blackhole the IP on the network and with our upstream peeers
         /tokens   :  Replies with the registration tokens
         """
         update.message.reply_text(m)
@@ -166,7 +195,6 @@ def help(bot, update):
     update.message.reply_text(
         """
         *User menu*
-        /bhlist  :  List the IP's currently blackholed on the network.
         /who   : List the registered users.
         /register {token}  : This is to register with the Bot or upgrade an account to an admin.
         """
@@ -187,66 +215,8 @@ def unknownCmd(bot, update):
     update.message.reply_text("Hi %s, not sure I understand, please ask for /help if needed." % update.message.from_user.first_name)
     return
 
-def ping(bot, update, args):
-    if _isIPv4(args[0]):
-        try:
-            output=subprocess.check_output(["ping","-c 5","-i .2",args[0]],stderr=subprocess.STDOUT)
-            reply_markup = telegram.ReplyKeyboardMarkup([["Yes", "No","5","/traceroute"]],one_time_keyboard=True)
-            button1 = telegram.InlineKeyboardButton(text="Yes",callback_data="8.8.8.8")
-            button2 = telegram.InlineKeyboardButton(text="No",callback_data="1.1.1.1")
-            inline_markup = telegram.InlineKeyboardMarkup([[button1],[button2]])
-            update.message.reply_text(output,reply_markup=inline_markup)
-        except subprocess.CalledProcessError,o:
-            update.message.reply_text(o.output)
-    else:
-        update.message.reply_text("Thats not a valid IP")
-    return
-
-def traceroute(bot, update, args):
-    if len(args) != 1:
-        help(bot,update)
-        return
-    if _isIPv4(args[0]):
-        update.message.reply_text("tracing up to 20 hops..")
-        try:
-            output=subprocess.check_output(["traceroute","-In","-q","1","-w","1","-m","20",args[0]],stderr=subprocess.STDOUT)
-            update.message.reply_text(output)
-        except subprocess.CalledProcessError,o:
-            update.message.reply_text(o.ouput)
-    else:
-        update.message.reply_text("Thats not a valid IP")
-    return
-
-def port(bot,update,args):
-    if len(args) != 2:
-        help(bot,update)
-        return
-    if not _isValidPort(args[1]):
-        update.message.reply_text("Thats not a valid Port")
-        return
-
-    if _isIPv4(args[0]):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(1)
-            if sock.connect_ex((args[0], int(args[1]))) == 0:
-                update.message.reply_text("Port %s:%s Open" % (args[0],args[1]))
-            else:
-                update.message.reply_text("Port %s:%s Closed" % (args[0],args[1]))
-    else:
-        update.message.reply_text("Thats not a valid IP")
-    return
-
-def _isIPv4(address):
-    try:
-        socket.inet_aton(address)
-        return True
-    except:
-        return False
-
-def main():
+def load_users():
     global userList
-    userList = {}
-
     # open up previous authenticated chat users
     try:
         with open(savefile, 'r') as f:
@@ -258,6 +228,11 @@ def main():
     except:
         pass
 
+def main():
+    global userList,updater
+    userList = {}
+
+    load_users()
     # Create the EventHandler and pass it your bot's token.
     updater = Updater("319507063:AAFI9Ca2x50NKTxBuxOn5TSHvdEI-bng0N4")
 
@@ -267,13 +242,8 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("register", register,pass_args=True))
     dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("bhlist", bhlist))
-    dp.add_handler(CommandHandler("blackhole", blackhole,pass_args=True))
     dp.add_handler(CommandHandler("who", who))
     dp.add_handler(CommandHandler("tokens", tokens))
-    dp.add_handler(CommandHandler("ping", ping,pass_args=True))
-    dp.add_handler(CommandHandler("port", port,pass_args=True))
-    dp.add_handler(CommandHandler("traceroute", traceroute,pass_args=True))
 
     dp.add_handler(MessageHandler(Filters.command,help))
     dp.add_handler(MessageHandler(Filters.text, help))
@@ -283,8 +253,6 @@ def main():
 
     # Start the Bot
     updater.start_polling()
-
-    # search
 
     updater.idle()
 

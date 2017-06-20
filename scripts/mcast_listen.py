@@ -25,12 +25,8 @@ class McastSocket(socket.socket):
         socket.inet_aton(addr) + socket.inet_aton(iface))
 
 
-
-
 def signal_handler(signal, frame):
         global estop
-        print
-
         estop.set()
         sys.exit(0)
 
