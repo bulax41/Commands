@@ -1,0 +1,43 @@
+- name: Juniper Management Switches Base Config
+  gather_facts: no
+  hosts: mgmt-switches
+  roles:
+    - Juniper.junos
+
+  tasks:
+   - name: Merge Config
+     juniper_junos_config:
+      template: "templates/juniper-mgmt-switch.j2"
+      load: "merge"
+      format: "set"
+      vars:
+        syslog_server: "{{ syslog_server }}"
+        ipa_server: "{{ ipa_server }}"
+        time_zone: "{{ time_zone }}"
+        host_name: "{{ inventory_hostname }}"
+     register: response
+
+
+
+- name: Juniper Management firewall Base Config
+  gather_facts: no
+  hosts: mgmt-firewalls
+  roles:
+    - Juniper.junos
+
+  tasks:
+   - name: Merge Config
+     juniper_junos_config:
+      template: "templates/juniper-mgmt-firewall.j2"
+      load: "merge"
+      format: "set"
+      vars:
+        syslog_server: "{{ syslog_server }}"
+        ipa_server: "{{ ipa_server }}"
+        time_zone: "{{ time_zone }}"
+        host_name: "{{ inventory_hostname }}"
+     register: response
+
+
+
+      

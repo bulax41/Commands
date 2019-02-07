@@ -1,0 +1,23 @@
+- name: Juniper WAN Switches Base Config
+  gather_facts: no
+  hosts: wan-switches
+  roles:
+    - Juniper.junos
+
+  tasks:
+   - name: Merge Config
+     juniper_junos_config:
+      template: "templates/juniper-wan-switch.j2"
+      load: "merge"
+      format: "set"
+      vars:
+        syslog_server: "{{ syslog_server }}"
+        ipa_server: "{{ ipa_server }}"
+        time_zone: "{{ time_zone }}"
+        host_name: "{{ inventory_hostname }}"
+     register: response
+
+
+
+
+      

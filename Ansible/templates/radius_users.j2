@@ -1,0 +1,27 @@
+DEFAULT Huntgroup-Name == "Juniper", Current-Time == "Any", Ldap-Group == "cn=network-admin,cn=groups,cn=accounts,dc=beeks,dc=local"
+#DEFAULT Huntgroup-Name == "Juniper", Current-Time == "Fr2200-2359,Sa,Su0000-2000", Ldap-Group == "cn=network-admin,cn=groups,cn=accounts,dc=beeks,dc=local"
+      Service-Type = "Login-User",
+      Idle-Timeout = 600,
+      Juniper-Local-User-Name = "super-users"
+
+DEFAULT Huntgroup-Name == "Juniper", Current-Time == "Any", Ldap-Group == "cn=network-backup,cn=groups,cn=accounts,dc=beeks,dc=local"
+      Service-Type = "Login-User",
+      Idle-Timeout = 600,
+      Juniper-Local-User-Name = "backup"
+
+
+DEFAULT Huntgroup-Name == "Juniper", Current-Time == "Any", Ldap-Group == "cn=network-noc,cn=groups,cn=accounts,dc=beeks,dc=local"
+      Service-Type = "Login-User",
+      Idle-Timeout = 600,
+      Juniper-Local-User-Name = "noc"
+
+DEFAULT Huntgroup-Name == "Juniper", Current-Time == "Any", Ldap-Group == "cn=network-readonly,cn=groups,cn=accounts,dc=beeks,dc=local"
+      Service-Type = "Login-User",
+      Idle-Timeout = 600,
+      Juniper-Local-User-Name = "readonly-users"
+
+
+DEFAULT Huntgroup-Name == "Arista", Current-Time == "Any", Ldap-Group == "cn=network-admin,cn=groups,cn=accounts,dc=beeks,dc=local"
+       Arista-AVPair = "shell:roles=network-admin",
+       Service-Type = NAS-Prompt-User
+

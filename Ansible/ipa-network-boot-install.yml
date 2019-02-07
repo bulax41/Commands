@@ -1,0 +1,38 @@
+---
+- hosts: ipa-servers
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+  - name: xinetd Installed
+    yum: 
+     name: xinetd
+     state: latest
+  - name: xinetd is running
+    service: 
+     name: xinetd
+     enabled: yes
+     state: started
+  
+  - name: TFTP Install 
+    yum:
+     name: tftp-server
+     state: latest
+  - name: TFTP Running
+    service:
+     name: tftp
+     enabled: yes
+     state: started 
+
+  - name: syslinux-tftpboot
+    yum:
+     name: syslinux-tftpboot
+     state: latest
+
+  - name: enable tftp service
+    replace:
+     path: /etc/xinetd.d/tftp
+     regexp: '(\s+)disable(\s+)= yes'
+     replace: '\1disable\2 = no'
+
+     

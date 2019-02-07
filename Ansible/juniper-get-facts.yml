@@ -1,0 +1,16 @@
+- name: Juniper Test
+  connection: local
+  gather_facts: no
+  hosts: wan-switches
+  roles:
+    - Juniper.junos
+
+  tasks:
+   - name: Facts
+     juniper_junos_facts:
+     register: result
+
+#   - debug: msg=" {{ result['ansible_facts']['junos']['RE0']['model'] }}  {{ result['ansible_facts']['junos']['RE0']['status'] }},  {{ result['ansible_facts']['junos']['RE0']['up_time'] }} "
+
+   - debug: 
+        var: result

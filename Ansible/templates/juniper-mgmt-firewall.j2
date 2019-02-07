@@ -1,0 +1,57 @@
+delete system
+set system host-name {{ host_name }}
+set system auto-snapshot
+set system time-zone {{ time_zone }}
+set system name-server {{ ipa_server }}
+set system authentication-order password
+set system authentication-order radius
+set system root-authentication encrypted-password "$1$8dBSlORD$8ObbWbvNNME4eZ6Pam802/"
+set system radius-server {{ ipa_server }} secret "$9$4rJiq5TFn/AQFnCpuhcKM8XdbYgoGjH"
+set system login class backup permissions view-configuration
+set system login class backup allow-commands show
+set system login class backup deny-commands "(clear)|(file)|(file show)|(help)|(load)|(monitor)|(op)|(request)|(save)|(set)|(start)|(test)"
+set system login class backup deny-configuration all
+set system login class noc idle-timeout 60
+set system login class noc login-alarms
+set system login class noc login-tip
+set system login class noc permissions configure
+set system login class noc permissions interface-control
+set system login class noc permissions routing-control
+set system login class noc permissions view
+set system login class noc permissions view-configuration
+set system login class noc allow-commands "(show)|(ping)|(traceroute)|(monitor)|(telnet)|(commit confirmed)"
+set system login class noc deny-commands commit
+set system login class noc allow-configuration vlan
+set system login class noc deny-configuration "(protocols)"
+set system login class super-user-local idle-timeout 60
+set system login class super-user-local login-alarms
+set system login class super-user-local login-tip
+set system login class super-user-local permissions all
+set system login user backup uid 2009
+set system login user backup class backup
+set system login user noc uid 2011
+set system login user noc class noc
+set system login user super-users uid 2008
+set system login user super-users class super-user-local
+set system services ssh root-login deny
+set system services netconf ssh
+set system syslog user * any emergency
+set system syslog host {{ syslog_server }} any any
+set system syslog file messages any notice
+set system syslog file messages authorization info
+set system syslog file interactive-commands interactive-commands any
+set system ntp server 10.70.70.254
+set system ntp server 10.71.71.254
+set system ntp server 10.72.72.254
+set system ntp server 10.74.74.254
+set system ntp server 10.75.75.254
+set system ntp server 10.76.76.254
+set system ntp server 10.77.77.254
+set snmp community k9A5qr36lm33Lk9g authorization read-only
+set snmp community k9A5qr36lm33Lk9g clients 10.60.60.99/32
+set snmp community k9A5qr36lm33Lk9g clients 10.72.72.250/32
+set snmp community k9A5qr36lm33Lk9g clients 10.74.74.250/32
+set system max-configurations-on-flash 10
+set system max-configuration-rollbacks 10
+
+

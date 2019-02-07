@@ -1,0 +1,27 @@
+---
+- hosts: ipa-servers
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+
+  - name: Update users file
+    template:
+     src: templates/radius_users.j2
+     dest: /etc/raddb/mods-config/files/authorize
+    notify:
+     - restart radiusd
+
+  - name: Update clients file
+    template:
+     src: templates/radius_clients.j2
+     dest: /etc/raddb/clients.conf
+    notify:
+     - restart radiusd
+
+    
+  handlers:
+    - name: restart radiusd
+      service: 
+        name: radiusd
+        state: restarted     
